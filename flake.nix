@@ -19,6 +19,11 @@
             : ${nats-plumber}
           '';
         };
+        devShells.default = pkgs.mkShell {
+          nativeBuildInputs = with pkgs; [
+            go_1_18
+          ];
+        };
     })) // {
       overlays.default = final: prev: {
         nats-plumber = prev.callPackage ./derivation.nix {};
