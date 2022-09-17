@@ -1,7 +1,7 @@
 package nats_plumber
 
 import (
-        "testing"
+	"testing"
 )
 
 func TestNothing(t *testing.T) {
