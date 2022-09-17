@@ -15,10 +15,10 @@ type routeOption = func(r *routeTest)
 
 func data(s string) routeOption { return func(rt *routeTest) { rt.in.Data = []byte(s) } }
 
-func msg(t *testing.T, opts ...routeOption) *routeTest {
+func msg(t *testing.T, subject string, opts ...routeOption) *routeTest {
 	rt := &routeTest{
 		t:  t,
-		in: nats.NewMsg("plumb.click"),
+		in: nats.NewMsg(subject),
 	}
 	for _, opt := range opts {
 		opt(rt)
@@ -42,6 +42,6 @@ func (rt *routeTest) routesTo(subject string) *routeTest {
 }
 
 func Test_HTTPS_and_HTTP_URLs_go_to_the_browser(t *testing.T) {
-	msg(t, data("https://eraserhead.net/foo")).routesTo("browser.open")
-	msg(t, data("http://eraserhead.net/foo")).routesTo("browser.open")
+	msg(t, "plumb.click", data("https://eraserhead.net/foo")).routesTo("browser.open")
+	msg(t, "plumb.click", data("http://eraserhead.net/foo")).routesTo("browser.open")
 }
