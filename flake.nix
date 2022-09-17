@@ -1,5 +1,5 @@
 {
-  description = "TODO: fill me in";
+  description = "Re-implementation of the Plan9 plumber using NATS.io";
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
   };

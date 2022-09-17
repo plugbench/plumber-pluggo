@@ -1,4 +1,4 @@
 nats-plumber
 ============
 
-TODO: fill me in
+A re-implementation of the Plan9 plumber using NATS.io.
