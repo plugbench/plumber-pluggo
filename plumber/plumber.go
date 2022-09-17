@@ -14,7 +14,9 @@ func New() (*Plumber, error) {
 }
 
 func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
-	return nil, errors.New("Not implemented")
+	out := nats.NewMsg("browser.open")
+	out.Data = msg.Data
+	return out, nil
 }
 
 func (p *Plumber) Run() error {
