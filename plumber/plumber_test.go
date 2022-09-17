@@ -7,41 +7,44 @@ import (
 )
 
 type routeTest struct {
-	t  *testing.T
-	in *nats.Msg
+	t   *testing.T
+	out *nats.Msg
+	err error
 }
 
-type routeOption = func(r *routeTest)
+type msgOption = func(r *nats.Msg)
 
-func data(s string) routeOption { return func(rt *routeTest) { rt.in.Data = []byte(s) } }
+func data(s string) msgOption { return func(msg *nats.Msg) { msg.Data = []byte(s) } }
 
-func msg(t *testing.T, subject string, opts ...routeOption) *routeTest {
-	rt := &routeTest{
-		t:  t,
-		in: nats.NewMsg(subject),
-	}
+func msg(subject string, opts ...msgOption) *nats.Msg {
+	msg := nats.NewMsg(subject)
 	for _, opt := range opts {
-		opt(rt)
+		opt(msg)
 	}
+	return msg
+}
+
+func routes(t *testing.T, msg *nats.Msg) *routeTest {
+	p, err := New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	out, err := p.Route(msg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rt := &routeTest{t: t, out: out, err: err}
 	return rt
 }
 
-func (rt *routeTest) routesTo(subject string) *routeTest {
-	p, err := New()
-	if err != nil {
-		rt.t.Fatal(err)
-	}
-	out, err := p.Route(rt.in)
-	if err != nil {
-		rt.t.Fatal(err)
-	}
-	if out.Subject != subject {
-		rt.t.Errorf("expected subject %q, but got %q", subject, out.Subject)
+func (rt *routeTest) to(subject string) *routeTest {
+	if rt.out.Subject != subject {
+		rt.t.Errorf("expected subject %q, but got %q", subject, rt.out.Subject)
 	}
 	return rt
 }
 
 func Test_HTTPS_and_HTTP_URLs_go_to_the_browser(t *testing.T) {
-	msg(t, "plumb.click", data("https://eraserhead.net/foo")).routesTo("browser.open")
-	msg(t, "plumb.click", data("http://eraserhead.net/foo")).routesTo("browser.open")
+	routes(t, msg("plumb.click", data("https://eraserhead.net/foo"))).to("browser.open")
+	routes(t, msg("plumb.click", data("http://eraserhead.net/foo"))).to("browser.open")
 }
