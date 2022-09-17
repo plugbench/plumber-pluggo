@@ -1,4 +1,4 @@
-package nats_plumber
+package plumber
 
 import (
 	"errors"
@@ -9,10 +9,14 @@ import (
 type Plumber struct {
 }
 
-func NewPlumber() (*Plumber, error) {
+func New() (*Plumber, error) {
 	return &Plumber{}, nil
 }
 
 func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
 	return nil, errors.New("Not implemented")
+}
+
+func (p *Plumber) Run() error {
+	return errors.New("Not implemented")
 }

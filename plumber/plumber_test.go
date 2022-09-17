@@ -1,4 +1,4 @@
-package nats_plumber
+package plumber
 
 import (
 	"testing"
