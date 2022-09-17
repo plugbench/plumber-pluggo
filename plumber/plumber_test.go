@@ -12,18 +12,6 @@ type routeTest struct {
 	err error
 }
 
-type msgOption = func(r *nats.Msg)
-
-func data(s string) msgOption { return func(msg *nats.Msg) { msg.Data = []byte(s) } }
-
-func msg(subject string, opts ...msgOption) *nats.Msg {
-	msg := nats.NewMsg(subject)
-	for _, opt := range opts {
-		opt(msg)
-	}
-	return msg
-}
-
 func routes(t *testing.T, msg *nats.Msg) *routeTest {
 	p, err := New()
 	if err != nil {
@@ -37,14 +25,33 @@ func routes(t *testing.T, msg *nats.Msg) *routeTest {
 	return rt
 }
 
-func (rt *routeTest) to(subject string) *routeTest {
-	if rt.out.Subject != subject {
-		rt.t.Errorf("expected subject %q, but got %q", subject, rt.out.Subject)
+func (rt *routeTest) to(expect *nats.Msg) *routeTest {
+	if rt.err != nil {
+		rt.t.Errorf("expected routing to succeed, but failed with %v", rt.err)
+		return rt
+	}
+	if expect.Subject != "" && rt.out.Subject != expect.Subject {
+		rt.t.Errorf("expected subject %q, but got %q", expect.Subject, rt.out.Subject)
+	}
+	if expect.Data != nil && string(rt.out.Data) != string(expect.Data) {
+		rt.t.Errorf("expected data %q, but got %q", string(expect.Data), string(rt.out.Data))
 	}
 	return rt
 }
 
 func Test_HTTPS_and_HTTP_URLs_go_to_the_browser(t *testing.T) {
-	routes(t, msg("plumb.click", data("https://eraserhead.net/foo"))).to("browser.open")
-	routes(t, msg("plumb.click", data("http://eraserhead.net/foo"))).to("browser.open")
+	routes(t, &nats.Msg{
+		Subject: "plumb.click",
+		Data:    []byte("https://eraserhead.net/foo"),
+	}).to(&nats.Msg{
+		Subject: "browser.open",
+		Data:    []byte("https://eraserhead.net/foo"),
+	})
+	routes(t, &nats.Msg{
+		Subject: "plumb.click",
+		Data:    []byte("http://eraserhead.net/foo"),
+	}).to(&nats.Msg{
+		Subject: "browser.open",
+		Data:    []byte("http://eraserhead.net/foo"),
+	})
 }
