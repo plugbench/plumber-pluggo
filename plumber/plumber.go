@@ -23,19 +23,8 @@ func New() (*Plumber, error) {
 
 func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
 	out := nats.NewMsg("editor.open")
-	out.Data = msg.Data
+	out.Data = router{msg}.absoluteURL()
 	out.Header = msg.Header
-
-	out.Data = msg.Data
-	if base := msg.Header.Get("Base"); base != "" {
-		baseURL, err := url.Parse(base)
-		if err == nil {
-			absoluteURL, err := baseURL.Parse(string(msg.Data))
-			if err == nil {
-				out.Data = []byte(absoluteURL.String())
-			}
-		}
-	}
 
 	if browserUrl.Match(msg.Data) {
 		out.Subject = "browser.open"
@@ -46,4 +35,19 @@ func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
 
 func (p *Plumber) Run() error {
 	return errors.New("Not implemented")
+}
+
+type router struct{ *nats.Msg }
+
+func (msg router) absoluteURL() []byte {
+	if base := msg.Header.Get("Base"); base != "" {
+		baseURL, err := url.Parse(base)
+		if err == nil {
+			absoluteURL, err := baseURL.Parse(string(msg.Data))
+			if err == nil {
+				return []byte(absoluteURL.String())
+			}
+		}
+	}
+	return msg.Data
 }
