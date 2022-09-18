@@ -27,7 +27,6 @@ func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
 
 	if browserUrl.Match(msg.Data) {
 		out.Subject = "browser.open"
-		return out, nil
 	}
 
 	return out, nil
