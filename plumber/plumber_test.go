@@ -59,9 +59,9 @@ func Test_HTTPS_and_HTTP_URLs_go_to_the_browser(t *testing.T) {
 func Test_Absolute_paths_are_routed_to_the_editor(t *testing.T) {
 	routes(t, &nats.Msg{
 		Subject: "plumb.click",
-		Data:    []byte("/tmp/foo.txt"),
+		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 	}).to(&nats.Msg{
 		Subject: "editor.open",
-		Data:    []byte("/tmp/foo.txt"),
+		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 	})
 }
