@@ -67,7 +67,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	msg.Header.Add("Working-Directory", wdir)
+	msg.Header.Add(plumb.BaseHeader, wdir)
 
 	attributes, err := plumb.ParseAttributes(*attr)
 	if err != nil {
