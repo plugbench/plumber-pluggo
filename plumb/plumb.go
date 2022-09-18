@@ -1,5 +1,7 @@
 package plumb
 
 const (
-        BaseHeader = "Base"
+	Base        = "Base"
+	ContentType = "Content-Type"
+	Source      = "Source"
 )

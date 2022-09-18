@@ -61,13 +61,13 @@ func main() {
 	}
 
 	msg := nats.NewMsg(subject)
-	msg.Header.Add("Source", *src)
-	msg.Header.Add("Content-Type", *mediaType)
+	msg.Header.Add(plumb.Source, *src)
+	msg.Header.Add(plumb.ContentType, *mediaType)
 	wdir, err := workingDirectory()
 	if err != nil {
 		log.Fatal(err)
 	}
-	msg.Header.Add(plumb.BaseHeader, wdir)
+	msg.Header.Add(plumb.Base, wdir)
 
 	attributes, err := plumb.ParseAttributes(*attr)
 	if err != nil {
