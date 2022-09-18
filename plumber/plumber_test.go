@@ -93,13 +93,25 @@ func Test_Plumber_passes_through_Base_header(t *testing.T) {
 		Subject: "plumb.click",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 		Header: map[string][]string{
-			"Base": {"file://file-server/tmp"},
+			"Base": {"file://file-server/tmp/"},
 		},
 	}).to(&nats.Msg{
 		Subject: "editor.open",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 		Header: map[string][]string{
-			"Base": {"file://file-server/tmp"},
+			"Base": {"file://file-server/tmp/"},
 		},
+	})
+}
+
+func Test_Plumber_resolves_relative_URLs(t *testing.T) {
+	routes(t, &nats.Msg{
+		Subject: "plumb.click",
+		Data:    []byte("/tmp/foo.txt"),
+		Header: map[string][]string{
+			"Base": {"file://file-server/bar/quux"},
+		},
+	}).to(&nats.Msg{
+		Data: []byte("file://file-server/tmp/foo.txt"),
 	})
 }
