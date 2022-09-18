@@ -62,6 +62,7 @@ func (rt *routeTest) to(expect *nats.Msg) *routeTest {
 }
 
 func Test_HTTPS_and_HTTP_URLs_go_to_the_browser(t *testing.T) {
+	t.Parallel()
 	routes(t, &nats.Msg{
 		Subject: "plumb.click",
 		Data:    []byte("https://eraserhead.net/foo"),
@@ -79,6 +80,7 @@ func Test_HTTPS_and_HTTP_URLs_go_to_the_browser(t *testing.T) {
 }
 
 func Test_Absolute_paths_are_routed_to_the_editor(t *testing.T) {
+	t.Parallel()
 	routes(t, &nats.Msg{
 		Subject: "plumb.click",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
@@ -89,6 +91,7 @@ func Test_Absolute_paths_are_routed_to_the_editor(t *testing.T) {
 }
 
 func Test_Plumber_passes_through_Base_header(t *testing.T) {
+	t.Parallel()
 	routes(t, &nats.Msg{
 		Subject: "plumb.click",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
@@ -105,13 +108,27 @@ func Test_Plumber_passes_through_Base_header(t *testing.T) {
 }
 
 func Test_Plumber_resolves_relative_URLs(t *testing.T) {
-	routes(t, &nats.Msg{
-		Subject: "plumb.click",
-		Data:    []byte("/tmp/foo.txt"),
-		Header: map[string][]string{
-			"Base": {"file://file-server/bar/quux"},
-		},
-	}).to(&nats.Msg{
-		Data: []byte("file://file-server/tmp/foo.txt"),
+	t.Parallel()
+	t.Run("absolute path with no server", func(t *testing.T) {
+		routes(t, &nats.Msg{
+			Subject: "plumb.click",
+			Data:    []byte("/tmp/foo.txt"),
+			Header: map[string][]string{
+				"Base": {"file://file-server/bar/quux"},
+			},
+		}).to(&nats.Msg{
+			Data: []byte("file://file-server/tmp/foo.txt"),
+		})
+	})
+	t.Run("relative path", func(t *testing.T) {
+		routes(t, &nats.Msg{
+			Subject: "plumb.click",
+			Data:    []byte("quux/foo.txt"),
+			Header: map[string][]string{
+				"Base": {"file://file-server/bar/"},
+			},
+		}).to(&nats.Msg{
+			Data: []byte("file://file-server/bar/quux/foo.txt"),
+		})
 	})
 }
