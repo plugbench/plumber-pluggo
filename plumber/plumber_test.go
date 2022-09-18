@@ -88,18 +88,18 @@ func Test_Absolute_paths_are_routed_to_the_editor(t *testing.T) {
 	})
 }
 
-func Test_Plumber_passes_through_Working_Directory_header(t *testing.T) {
+func Test_Plumber_passes_through_Base_header(t *testing.T) {
 	routes(t, &nats.Msg{
 		Subject: "plumb.click",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 		Header: map[string][]string{
-			"Working-Directory": {"file://file-server/tmp"},
+			"Base": {"file://file-server/tmp"},
 		},
 	}).to(&nats.Msg{
 		Subject: "editor.open",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 		Header: map[string][]string{
-			"Working-Directory": {"file://file-server/tmp"},
+			"Base": {"file://file-server/tmp"},
 		},
 	})
 }
