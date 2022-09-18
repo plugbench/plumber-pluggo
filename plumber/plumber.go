@@ -2,6 +2,7 @@ package plumber
 
 import (
 	"errors"
+	"log"
 	"net/url"
 	"regexp"
 
@@ -25,6 +26,7 @@ func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
 	out := nats.NewMsg("editor.open")
 	out.Data = router{msg}.absoluteURL()
 	out.Header = msg.Header
+	out.Reply = msg.Reply
 
 	if browserUrl.Match(msg.Data) {
 		out.Subject = "browser.open"
@@ -34,7 +36,34 @@ func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
 }
 
 func (p *Plumber) Run() error {
-	return errors.New("Not implemented")
+	nc, err := nats.Connect(nats.DefaultURL)
+	if err != nil {
+		return err
+	}
+	defer nc.Close()
+
+	ch := make(chan *nats.Msg, 32)
+	sub, err := nc.ChanSubscribe("plumb.click", ch)
+	if err != nil {
+		return err
+	}
+	defer sub.Drain()
+
+	for {
+		msg := <-ch
+		log.Printf("recieved %q", string(msg.Data))
+
+		next, err := p.Route(msg)
+		if err != nil {
+			log.Printf("route error: %v", err)
+			continue
+		}
+
+		if err := nc.PublishMsg(next); err != nil {
+			log.Printf("error sending: %v", err)
+			continue
+		}
+	}
 }
 
 type router struct{ *nats.Msg }
