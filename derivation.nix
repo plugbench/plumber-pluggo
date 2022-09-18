@@ -1,4 +1,5 @@
 { buildGo119Module
+, fetchFromGitHub
 }:
 
 buildGo119Module {
