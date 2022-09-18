@@ -40,14 +40,17 @@ func (p *Plumber) Run() error {
 type router struct{ *nats.Msg }
 
 func (msg router) absoluteURL() []byte {
-	if base := msg.Header.Get("Base"); base != "" {
-		baseURL, err := url.Parse(base)
-		if err == nil {
-			absoluteURL, err := baseURL.Parse(string(msg.Data))
-			if err == nil {
-				return []byte(absoluteURL.String())
-			}
-		}
+	base := msg.Header.Get("Base")
+	if base == "" {
+		return msg.Data
 	}
-	return msg.Data
+	baseURL, err := url.Parse(base)
+	if err != nil {
+		return msg.Data
+	}
+	absoluteURL, err := baseURL.Parse(string(msg.Data))
+	if err != nil {
+		return msg.Data
+	}
+	return []byte(absoluteURL.String())
 }
