@@ -43,7 +43,6 @@ func (rt *routeTest) to(expect *nats.Msg) *routeTest {
 				rt.t.Errorf("missing expected header %q", k)
 				continue
 			}
-
 			equivalent := true
 			if len(vs) != len(actualVs) {
 				equivalent = false
