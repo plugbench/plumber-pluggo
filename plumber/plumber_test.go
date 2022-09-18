@@ -36,6 +36,28 @@ func (rt *routeTest) to(expect *nats.Msg) *routeTest {
 	if expect.Data != nil && string(rt.out.Data) != string(expect.Data) {
 		rt.t.Errorf("expected data %q, but got %q", string(expect.Data), string(rt.out.Data))
 	}
+	if expect.Header != nil {
+		for k, vs := range expect.Header {
+			actualVs, ok := rt.out.Header[k]
+			if !ok {
+				rt.t.Errorf("missing expected header %q", k)
+				continue
+			}
+
+			equivalent := true
+			if len(vs) != len(actualVs) {
+				equivalent = false
+			}
+			for i := range vs {
+				if vs[i] != actualVs[i] {
+					equivalent = false
+				}
+			}
+			if !equivalent {
+				rt.t.Errorf("expected %q header values %v, but got %v", k, vs, actualVs)
+			}
+		}
+	}
 	return rt
 }
 
@@ -63,5 +85,21 @@ func Test_Absolute_paths_are_routed_to_the_editor(t *testing.T) {
 	}).to(&nats.Msg{
 		Subject: "editor.open",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
+	})
+}
+
+func Test_Plumber_passes_through_Working_Directory_header(t *testing.T) {
+	routes(t, &nats.Msg{
+		Subject: "plumb.click",
+		Data:    []byte("file://my-workstation/tmp/foo.txt"),
+		Header: map[string][]string{
+			"Working-Directory": {"file://file-server/tmp"},
+		},
+	}).to(&nats.Msg{
+		Subject: "editor.open",
+		Data:    []byte("file://my-workstation/tmp/foo.txt"),
+		Header: map[string][]string{
+			"Working-Directory": {"file://file-server/tmp"},
+		},
 	})
 }

@@ -21,14 +21,15 @@ func New() (*Plumber, error) {
 }
 
 func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
+	out := nats.NewMsg("editor.open")
+	out.Data = msg.Data
+	out.Header = msg.Header
+
 	if browserUrl.Match(msg.Data) {
-		out := nats.NewMsg("browser.open")
-		out.Data = msg.Data
+		out.Subject = "browser.open"
 		return out, nil
 	}
 
-	out := nats.NewMsg("editor.open")
-	out.Data = msg.Data
 	return out, nil
 }
 
