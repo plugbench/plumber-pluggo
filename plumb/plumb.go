@@ -2,6 +2,7 @@ package plumb
 
 import (
 	"errors"
+	"net/http"
 	"strings"
 	"unicode"
 )
@@ -13,8 +14,8 @@ const (
 )
 
 var (
-	NoEqualsError          = errors.New("no '=' in attribute string")
-	UnterminatedQuoteError = errors.New("unterminated quote")
+	NoEquals          = errors.New("no '=' in attribute string")
+	UnterminatedQuote = errors.New("unterminated quote")
 )
 
 func tokenize(s string) ([]string, error) {
@@ -52,7 +53,7 @@ func tokenize(s string) ([]string, error) {
 		}
 	}
 	if state == tokenizeStateInQuote {
-		return result, UnterminatedQuoteError
+		return result, UnterminatedQuote
 	}
 	return result, nil
 }
@@ -69,9 +70,9 @@ func ParseAttributes(s string) (map[string]string, error) {
 	for _, token := range tokens {
 		parts := strings.SplitN(token, "=", 2)
 		if len(parts) != 2 {
-			return result, NoEqualsError
+			return result, NoEquals
 		}
-		result[parts[0]] = parts[1]
+		result[http.CanonicalHeaderKey(parts[0])] = parts[1]
 	}
 	return result, nil
 }
