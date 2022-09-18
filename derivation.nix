@@ -1,7 +1,7 @@
-{ buildGoModule
+{ buildGo119Module
 }:
 
-buildGoModule {
+buildGo119Module {
   pname = "nats-plumber";
   version = "0.1.0";
   src = ./.;

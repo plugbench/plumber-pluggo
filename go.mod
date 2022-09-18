@@ -1,6 +1,6 @@
 module github.com/eraserhd/nats-plumber
 
-go 1.18
+go 1.19
 
 require github.com/nats-io/nats.go v1.17.0
 
