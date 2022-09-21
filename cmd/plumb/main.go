@@ -93,7 +93,11 @@ func main() {
 	}
 	defer nc.Close()
 
-	if _, err := nc.RequestMsg(msg, time.Second * 10); err != nil {
+	reply, err := nc.RequestMsg(msg, time.Second * 10)
+	if err != nil {
 		log.Fatalf("sending NATS message: %v", err)
+	}
+	if string(reply.Data) != "ok" {
+        	log.Fatal(string(reply.Data))
 	}
 }
