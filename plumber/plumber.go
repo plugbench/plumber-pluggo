@@ -2,6 +2,7 @@ package plumber
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/url"
 	"regexp"
@@ -54,13 +55,14 @@ func (p *Plumber) Run() error {
 		log.Printf("recieved %q", string(msg.Data))
 
 		next, err := p.Route(msg)
-		if err != nil {
-			log.Printf("route error: %v", err)
-			continue
+		if err == nil {
+			err = nc.PublishMsg(next)
 		}
-
-		if err := nc.PublishMsg(next); err != nil {
-			log.Printf("error sending: %v", err)
+		if err != nil {
+			log.Print(err)
+			if err := msg.Respond([]byte(fmt.Sprintf("ERROR: %v", err.Error()))); err != nil {
+				log.Printf("error responding: %v", err)
+			}
 			continue
 		}
 	}
