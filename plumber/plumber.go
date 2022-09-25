@@ -13,7 +13,7 @@ import (
 
 var (
 	browserUrl    = regexp.MustCompile(`^https?://`)
-	filePositions = regexp.MustCompile(`^(.*):(\d+):?$`)
+	filePositions = regexp.MustCompile(`^(.*?):(\d+)(?::(\d+))?:?$`)
 
 	NoRoute = errors.New("no route")
 )
@@ -84,11 +84,17 @@ func (msg router) absoluteURL() []byte {
 
 	var line int64
 	var haveLine bool
+	var col int64
+	var haveCol bool
 	path := msg.Data
 	if sub := filePositions.FindSubmatch(msg.Data); sub != nil {
 		path = sub[1]
 		line, _ = strconv.ParseInt(string(sub[2]), 10, 64)
 		haveLine = true
+		if len(sub[3]) > 0 {
+			col, _ = strconv.ParseInt(string(sub[3]), 10, 64)
+			haveCol = true
+		}
 	}
 
 	absoluteURL, err := baseURL.Parse(string(path))
@@ -98,6 +104,9 @@ func (msg router) absoluteURL() []byte {
 
 	if haveLine {
 		absoluteURL.Fragment = fmt.Sprintf("line=%d", line-1)
+		if haveCol {
+			absoluteURL.Fragment += fmt.Sprintf(";char=%d", col-1)
+		}
 	}
 
 	return []byte(absoluteURL.String())
