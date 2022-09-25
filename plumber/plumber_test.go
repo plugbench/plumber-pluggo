@@ -131,3 +131,15 @@ func Test_Plumber_resolves_relative_URLs(t *testing.T) {
 		})
 	})
 }
+
+func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {
+	t.Parallel()
+	t.Run("exisiting fragment is passed through", func(t *testing.T) {
+		routes(t, &nats.Msg{
+			Subject: "plumb.click",
+			Data:    []byte("file:///tmp/foo.txt#line=42"),
+		}).to(&nats.Msg{
+			Data: []byte("file:///tmp/foo.txt#line=42"),
+		})
+	})
+}
