@@ -158,4 +158,15 @@ func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {
 			Data: []byte("file:///tmp/foo.txt#line=78"),
 		})
 	})
+	t.Run("trailing colon is ignored", func(t *testing.T) {
+		routes(t, &nats.Msg{
+			Subject: "plumb.click",
+			Data:    []byte("/tmp/foo.txt:79:"),
+		}).to(&nats.Msg{
+			Data: []byte("file:///tmp/foo.txt#line=78"),
+		})
+	})
+	// "line-line is converted"
+	// "line:column is converted"
+	// "line:column-column is converted"
 }

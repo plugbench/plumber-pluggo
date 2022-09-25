@@ -13,7 +13,7 @@ import (
 
 var (
 	browserUrl    = regexp.MustCompile(`^https?://`)
-	filePositions = regexp.MustCompile(`^(.*):(\d+)$`)
+	filePositions = regexp.MustCompile(`^(.*):(\d+):?$`)
 
 	NoRoute = errors.New("no route")
 )
