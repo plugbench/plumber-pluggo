@@ -150,4 +150,12 @@ func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {
 			Data: []byte("file:///tmp/foo.txt#line=42"),
 		})
 	})
+	t.Run("colon-separated line number is converted", func(t *testing.T) {
+		routes(t, &nats.Msg{
+			Subject: "plumb.click",
+			Data:    []byte("/tmp/foo.txt:79"),
+		}).to(&nats.Msg{
+			Data: []byte("file:///tmp/foo.txt#line=78"),
+		})
+	})
 }

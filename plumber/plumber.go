@@ -6,12 +6,14 @@ import (
 	"log"
 	"net/url"
 	"regexp"
+	"strconv"
 
 	"github.com/nats-io/nats.go"
 )
 
 var (
-	browserUrl = regexp.MustCompile(`^https?://`)
+	browserUrl    = regexp.MustCompile(`^https?://`)
+	filePositions = regexp.MustCompile(`^(.*):(\d+)$`)
 
 	NoRoute = errors.New("no route")
 )
@@ -79,9 +81,24 @@ func (msg router) absoluteURL() []byte {
 	if err != nil {
 		return msg.Data
 	}
-	absoluteURL, err := baseURL.Parse(string(msg.Data))
+
+	var line int64
+	var haveLine bool
+	path := msg.Data
+	if sub := filePositions.FindSubmatch(msg.Data); sub != nil {
+		path = sub[1]
+		line, _ = strconv.ParseInt(string(sub[2]), 10, 64)
+		haveLine = true
+	}
+
+	absoluteURL, err := baseURL.Parse(string(path))
 	if err != nil {
 		return msg.Data
 	}
+
+	if haveLine {
+		absoluteURL.Fragment = fmt.Sprintf("line=%d", line-1)
+	}
+
 	return []byte(absoluteURL.String())
 }
