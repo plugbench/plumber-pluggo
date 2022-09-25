@@ -130,6 +130,14 @@ func Test_Plumber_resolves_relative_URLs(t *testing.T) {
 			Data: []byte("file://file-server/bar/quux/foo.txt"),
 		})
 	})
+	t.Run("absolute, non-URL filepath with no Base is made into a file URL", func(t *testing.T) {
+		routes(t, &nats.Msg{
+			Subject: "plumb.click",
+			Data:    []byte("/tmp/foo.txt"),
+		}).to(&nats.Msg{
+			Data: []byte("file:///tmp/foo.txt"),
+		})
+	})
 }
 
 func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {

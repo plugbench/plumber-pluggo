@@ -73,7 +73,7 @@ type router struct{ *nats.Msg }
 func (msg router) absoluteURL() []byte {
 	base := msg.Header.Get("Base")
 	if base == "" {
-		return msg.Data
+		base = "file://"
 	}
 	baseURL, err := url.Parse(base)
 	if err != nil {
