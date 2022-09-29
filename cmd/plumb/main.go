@@ -44,6 +44,9 @@ func workingDirectory() (string, error) {
 		}
 		dir = filepath.ToSlash(filepath.Join(base, *wdir))
 	}
+	if !strings.HasSuffix(dir, "/") {
+		dir += "/"
+	}
 	hostname, _ := os.Hostname()
 	return fmt.Sprintf("file://%s%s", hostname, dir), nil
 }
@@ -93,11 +96,11 @@ func main() {
 	}
 	defer nc.Close()
 
-	reply, err := nc.RequestMsg(msg, time.Second * 10)
+	reply, err := nc.RequestMsg(msg, time.Second*10)
 	if err != nil {
 		log.Fatalf("sending NATS message: %v", err)
 	}
 	if string(reply.Data) != "ok" {
-        	log.Fatal(string(reply.Data))
+		log.Fatal(string(reply.Data))
 	}
 }
