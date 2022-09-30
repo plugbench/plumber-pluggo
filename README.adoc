@@ -1,4 +1,39 @@
 nats-plumber
 ============
 
-A re-implementation of the Plan9 plumber using NATS.io.
+A re-implementation of the https://9fans.github.io/plan9port/man/man4/plumber.html[Plan9 plumber] using https://nats.io[NATS.io].
+
+Installing
+----------
+
+First, https://docs.nats.io/running-a-nats-service/introduction/installation[Install NATS.io].
+Jetstream is not necessary.
+You can connect your NATS nodes into a cluster or use leaf nodes to bridge your systems.
+
+Next, you need a working install of Go, with `$GOBIN/bin` in the path.
+
+----
+$ go install github.com/eraserhd/nats-plumber@latest
+----
+
+The plumber should be configured to run persistently using an OS facility such as systemd or launchd.
+
+Configuration
+-------------
+
+There is no configuration file and no options yet.
+I'm not convinced that the original _style_ of configuration was the best idea, and there was a ton of common boilerplate in people's configurations.
+Therefore, my goal is to add as many common features in code and refactor, and expose choice points when we have some.
+
+Features
+--------
+
+The nats-plumber does its best to rewrite the click text as a canonicalized URL before routing.
+File paths are turned into `file://` URLs with a hostname when possible.
+Relative URLs are made absolute when the base href (or working directory) is known.
+File addresses (e.g. numbers following a colon) are rewritten to conform to RFC 5147 plain-text fragment identifiers.
+
+This canonicalized URL is forwarded to some topic:
+
+* URLs with the `http` or `https` schema are routed to the `browser.open` topic.
+* URLs with the `file` are routed to the `editor.open` topic.
