@@ -21,7 +21,7 @@ var (
 	dst       = flag.String("d", "", "set message destination (default is plumb.click or plumb.showdata if -i)")
 	mediaType = flag.String("t", "text/plain", "set the media type (default is text/plain)")
 	wdir      = flag.String("w", "", "set message working directory (default is current directory)")
-	showdata  = flag.Bool("i", false, "read data from stdin and add action=showdata attribute if not already set")
+	showdata  = flag.Bool("i", false, "read data from stdin and send to plumb.showdata")
 )
 
 func workingDirectory() (string, error) {
