@@ -12,7 +12,6 @@ import (
 )
 
 var (
-	browserUrl    = regexp.MustCompile(`^https?://`)
 	filePositions = regexp.MustCompile(`^(.*?):(\d+)(?::(\d+))?:?$`)
 
 	NoRoute = errors.New("no route")
@@ -26,15 +25,11 @@ func New() (*Plumber, error) {
 }
 
 func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
-	out := nats.NewMsg("cmd.show.url.file")
-	out.Data = router{msg}.absoluteURL()
+	u := router{msg}.absoluteURL()
+	out := nats.NewMsg(fmt.Sprintf("cmd.show.url.%s", u.Scheme))
+	out.Data = []byte(u.String())
 	out.Header = msg.Header
 	out.Reply = msg.Reply
-
-	if browserUrl.Match(msg.Data) {
-		out.Subject = "browser.open"
-	}
-
 	return out, nil
 }
 
@@ -72,14 +67,14 @@ func (p *Plumber) Run() error {
 
 type router struct{ *nats.Msg }
 
-func (msg router) absoluteURL() []byte {
+func (msg router) absoluteURL() *url.URL {
 	base := msg.Header.Get("Base")
 	if base == "" {
 		base = "file://"
 	}
 	baseURL, err := url.Parse(base)
 	if err != nil {
-		return msg.Data
+		return baseURL
 	}
 
 	var line int64
@@ -99,7 +94,7 @@ func (msg router) absoluteURL() []byte {
 
 	absoluteURL, err := baseURL.Parse(string(path))
 	if err != nil {
-		return msg.Data
+		return baseURL
 	}
 
 	if haveLine {
@@ -109,5 +104,5 @@ func (msg router) absoluteURL() []byte {
 		}
 	}
 
-	return []byte(absoluteURL.String())
+	return absoluteURL
 }
