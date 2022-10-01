@@ -28,7 +28,7 @@ Therefore, my goal is to add as many common features in code and refactor, and e
 Features
 --------
 
-The nats-plumber does its best to rewrite the click text as a canonicalized URL before routing.
+The plumber pluggo does its best to rewrite the click text as a canonicalized URL before routing.
 File paths are turned into `file://` URLs with a hostname when possible.
 Relative URLs are made absolute when the base href (or working directory) is known.
 File addresses (e.g. numbers following a colon) are rewritten to conform to RFC 5147 plain-text fragment identifiers.

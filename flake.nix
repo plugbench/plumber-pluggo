@@ -7,16 +7,16 @@
     (flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
-        nats-plumber = pkgs.callPackage ./derivation.nix {};
+        plumber-pluggo = pkgs.callPackage ./derivation.nix {};
       in {
         packages = {
-          default = nats-plumber;
-          inherit nats-plumber;
+          default = plumber-pluggo;
+          inherit plumber-pluggo;
         };
         checks = {
-          test = pkgs.runCommandNoCC "nats-plumber-test" {} ''
+          test = pkgs.runCommandNoCC "plumber-pluggo-test" {} ''
             mkdir -p $out
-            : ${nats-plumber}
+            : ${plumber-pluggo}
           '';
         };
         devShells.default = pkgs.mkShell {
@@ -26,7 +26,7 @@
         };
     })) // {
       overlays.default = final: prev: {
-        nats-plumber = prev.callPackage ./derivation.nix {};
+        plumber-pluggo = prev.callPackage ./derivation.nix {};
       };
     };
 }
