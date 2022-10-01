@@ -1,4 +1,4 @@
-module github.com/eraserhd/nats-plumber
+module github.com/plugbench/plumber-pluggo
 
 go 1.19
 

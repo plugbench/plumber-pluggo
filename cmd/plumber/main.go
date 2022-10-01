@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/eraserhd/nats-plumber/plumber"
+	"github.com/plugbench/plumber-pluggo/plumber"
 )
 
 func main() {

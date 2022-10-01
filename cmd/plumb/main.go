@@ -12,7 +12,7 @@ import (
 
 	"github.com/nats-io/nats.go"
 
-	"github.com/eraserhd/nats-plumber/plumb"
+	"github.com/plugbench/plumber-pluggo/plumb"
 )
 
 var (
