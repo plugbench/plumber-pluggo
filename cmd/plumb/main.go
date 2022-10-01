@@ -18,10 +18,10 @@ import (
 var (
 	attr      = flag.String("a", "", "set message attributes")
 	src       = flag.String("s", "plumb", "set message source (default is plumb)")
-	dst       = flag.String("d", "", "set message destination (default is plumb.click or plumb.showdata if -i)")
+	dst       = flag.String("d", "", "set message destination (default is cmd.show.data.plumb or cmd.show.data.text if -i)")
 	mediaType = flag.String("t", "text/plain", "set the media type (default is text/plain)")
 	wdir      = flag.String("w", "", "set message working directory (default is current directory)")
-	showdata  = flag.Bool("i", false, "read data from stdin and send to plumb.showdata")
+	showdata  = flag.Bool("i", false, "read data from stdin and send to cmd.show.data.text")
 )
 
 func workingDirectory() (string, error) {
@@ -57,9 +57,9 @@ func main() {
 	subject := *dst
 	if subject == "" {
 		if *showdata {
-			subject = "plumb.showdata"
+			subject = "cmd.show.data.text"
 		} else {
-			subject = "plumb.click"
+			subject = "cmd.show.data.plumb"
 		}
 	}
 

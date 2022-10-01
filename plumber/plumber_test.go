@@ -63,21 +63,21 @@ func (rt *routeTest) to(expect *nats.Msg) *routeTest {
 func Test_URLs_are_routed_to_schema_specific_topics(t *testing.T) {
 	t.Parallel()
 	routes(t, &nats.Msg{
-		Subject: "plumb.click",
+		Subject: "cmd.show.data.plumb",
 		Data:    []byte("https://eraserhead.net/foo"),
 	}).to(&nats.Msg{
 		Subject: "cmd.show.url.https",
 		Data:    []byte("https://eraserhead.net/foo"),
 	})
 	routes(t, &nats.Msg{
-		Subject: "plumb.click",
+		Subject: "cmd.show.data.plumb",
 		Data:    []byte("http://eraserhead.net/foo"),
 	}).to(&nats.Msg{
 		Subject: "cmd.show.url.http",
 		Data:    []byte("http://eraserhead.net/foo"),
 	})
 	routes(t, &nats.Msg{
-		Subject: "plumb.click",
+		Subject: "cmd.show.data.plumb",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 	}).to(&nats.Msg{
 		Subject: "cmd.show.url.file",
@@ -88,7 +88,7 @@ func Test_URLs_are_routed_to_schema_specific_topics(t *testing.T) {
 func Test_Plumber_passes_through_Base_header(t *testing.T) {
 	t.Parallel()
 	routes(t, &nats.Msg{
-		Subject: "plumb.click",
+		Subject: "cmd.show.data.plumb",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 		Header: map[string][]string{
 			"Base": {"file://file-server/tmp/"},
@@ -106,7 +106,7 @@ func Test_Plumber_resolves_relative_URLs(t *testing.T) {
 	t.Parallel()
 	t.Run("absolute path with no server", func(t *testing.T) {
 		routes(t, &nats.Msg{
-			Subject: "plumb.click",
+			Subject: "cmd.show.data.plumb",
 			Data:    []byte("/tmp/foo.txt"),
 			Header: map[string][]string{
 				"Base": {"file://file-server/bar/quux"},
@@ -117,7 +117,7 @@ func Test_Plumber_resolves_relative_URLs(t *testing.T) {
 	})
 	t.Run("relative path", func(t *testing.T) {
 		routes(t, &nats.Msg{
-			Subject: "plumb.click",
+			Subject: "cmd.show.data.plumb",
 			Data:    []byte("quux/foo.txt"),
 			Header: map[string][]string{
 				"Base": {"file://file-server/bar/"},
@@ -128,7 +128,7 @@ func Test_Plumber_resolves_relative_URLs(t *testing.T) {
 	})
 	t.Run("absolute, non-URL filepath with no Base is made into a file URL", func(t *testing.T) {
 		routes(t, &nats.Msg{
-			Subject: "plumb.click",
+			Subject: "cmd.show.data.plumb",
 			Data:    []byte("/tmp/foo.txt"),
 		}).to(&nats.Msg{
 			Data: []byte("file:///tmp/foo.txt"),
@@ -140,7 +140,7 @@ func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {
 	t.Parallel()
 	t.Run("exisiting fragment is passed through", func(t *testing.T) {
 		routes(t, &nats.Msg{
-			Subject: "plumb.click",
+			Subject: "cmd.show.data.plumb",
 			Data:    []byte("file:///tmp/foo.txt#line=42"),
 		}).to(&nats.Msg{
 			Data: []byte("file:///tmp/foo.txt#line=42"),
@@ -148,7 +148,7 @@ func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {
 	})
 	t.Run("colon-separated line number is converted", func(t *testing.T) {
 		routes(t, &nats.Msg{
-			Subject: "plumb.click",
+			Subject: "cmd.show.data.plumb",
 			Data:    []byte("/tmp/foo.txt:79"),
 		}).to(&nats.Msg{
 			Data: []byte("file:///tmp/foo.txt#line=78"),
@@ -156,7 +156,7 @@ func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {
 	})
 	t.Run("trailing colon is ignored", func(t *testing.T) {
 		routes(t, &nats.Msg{
-			Subject: "plumb.click",
+			Subject: "cmd.show.data.plumb",
 			Data:    []byte("/tmp/foo.txt:79:"),
 		}).to(&nats.Msg{
 			Data: []byte("file:///tmp/foo.txt#line=78"),
@@ -165,7 +165,7 @@ func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {
 	// "line-line is converted"
 	t.Run("line:column is converted", func(t *testing.T) {
 		routes(t, &nats.Msg{
-			Subject: "plumb.click",
+			Subject: "cmd.show.data.plumb",
 			Data:    []byte("/tmp/foo.txt:79:12:"),
 		}).to(&nats.Msg{
 			Data: []byte("file:///tmp/foo.txt#line=78;char=11"),

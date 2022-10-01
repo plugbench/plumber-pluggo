@@ -41,7 +41,7 @@ func (p *Plumber) Run() error {
 	defer nc.Close()
 
 	ch := make(chan *nats.Msg, 32)
-	sub, err := nc.ChanSubscribe("plumb.click", ch)
+	sub, err := nc.ChanSubscribe("cmd.show.data.plumb", ch)
 	if err != nil {
 		return err
 	}
