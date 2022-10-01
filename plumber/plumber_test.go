@@ -84,7 +84,7 @@ func Test_Absolute_paths_are_routed_to_the_editor(t *testing.T) {
 		Subject: "plumb.click",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 	}).to(&nats.Msg{
-		Subject: "editor.open",
+		Subject: "cmd.show.url.file",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 	})
 }
@@ -98,7 +98,7 @@ func Test_Plumber_passes_through_Base_header(t *testing.T) {
 			"Base": {"file://file-server/tmp/"},
 		},
 	}).to(&nats.Msg{
-		Subject: "editor.open",
+		Subject: "cmd.show.url.file",
 		Data:    []byte("file://my-workstation/tmp/foo.txt"),
 		Header: map[string][]string{
 			"Base": {"file://file-server/tmp/"},

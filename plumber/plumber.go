@@ -26,7 +26,7 @@ func New() (*Plumber, error) {
 }
 
 func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
-	out := nats.NewMsg("editor.open")
+	out := nats.NewMsg("cmd.show.url.file")
 	out.Data = router{msg}.absoluteURL()
 	out.Header = msg.Header
 	out.Reply = msg.Reply
