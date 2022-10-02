@@ -14,7 +14,7 @@
           inherit plumber-pluggo;
         };
         checks = {
-          test = pkgs.runCommandNoCC "plumber-pluggo-test" {} ''
+          test = pkgs.runCommand "plumber-pluggo-test" {} ''
             mkdir -p $out
             : ${plumber-pluggo}
           '';
