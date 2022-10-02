@@ -1,19 +1,7 @@
 package plumber
 
 import (
-	"errors"
-	"fmt"
-	"net/url"
-	"regexp"
-	"strconv"
-
 	"github.com/nats-io/nats.go"
-)
-
-var (
-	filePositions = regexp.MustCompile(`^(.*?):(\d+)(?::(\d+))?:?$`)
-
-	NoRoute = errors.New("no route")
 )
 
 type Plumber struct {
@@ -44,44 +32,3 @@ func (p *Plumber) Run() error {
 	}
 }
 
-type router struct{ *nats.Msg }
-
-func (msg router) absoluteURL() *url.URL {
-	base := msg.Header.Get("Base")
-	if base == "" {
-		base = "file://"
-	}
-	baseURL, err := url.Parse(base)
-	if err != nil {
-		return baseURL
-	}
-
-	var line int64
-	var haveLine bool
-	var col int64
-	var haveCol bool
-	path := msg.Data
-	if sub := filePositions.FindSubmatch(msg.Data); sub != nil {
-		path = sub[1]
-		line, _ = strconv.ParseInt(string(sub[2]), 10, 64)
-		haveLine = true
-		if len(sub[3]) > 0 {
-			col, _ = strconv.ParseInt(string(sub[3]), 10, 64)
-			haveCol = true
-		}
-	}
-
-	absoluteURL, err := baseURL.Parse(string(path))
-	if err != nil {
-		return baseURL
-	}
-
-	if haveLine {
-		absoluteURL.Fragment = fmt.Sprintf("line=%d", line-1)
-		if haveCol {
-			absoluteURL.Fragment += fmt.Sprintf(";char=%d", col-1)
-		}
-	}
-
-	return absoluteURL
-}

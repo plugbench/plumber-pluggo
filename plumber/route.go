@@ -3,8 +3,15 @@ package plumber
 import (
 	"fmt"
 	"log"
+	"net/url"
+	"regexp"
+	"strconv"
 
 	"github.com/nats-io/nats.go"
+)
+
+var (
+	filePositions = regexp.MustCompile(`^(.*?):(\d+)(?::(\d+))?:?$`)
 )
 
 type routeAction struct {
@@ -16,8 +23,8 @@ func newRouteCommand(msg *nats.Msg, send func(msg *nats.Msg) error) *routeAction
 	return &routeAction{msg: msg, send: send}
 }
 
-func route(msg *nats.Msg) (*nats.Msg, error) {
-	u := router{msg}.absoluteURL()
+func (a *routeAction) route(msg *nats.Msg) (*nats.Msg, error) {
+	u := a.absoluteURL()
 	out := nats.NewMsg(fmt.Sprintf("cmd.show.url.%s", u.Scheme))
 	out.Data = []byte(u.String())
 	out.Header = msg.Header
@@ -25,17 +32,56 @@ func route(msg *nats.Msg) (*nats.Msg, error) {
 	return out, nil
 }
 
-func (rc *routeAction) Execute() {
-	log.Printf("recieved %q", string(rc.msg.Data))
-	next, err := route(rc.msg)
+func (a *routeAction) absoluteURL() *url.URL {
+	base := a.msg.Header.Get("Base")
+	if base == "" {
+		base = "file://"
+	}
+	baseURL, err := url.Parse(base)
+	if err != nil {
+		return baseURL
+	}
+
+	var line int64
+	var haveLine bool
+	var col int64
+	var haveCol bool
+	path := a.msg.Data
+	if sub := filePositions.FindSubmatch(a.msg.Data); sub != nil {
+		path = sub[1]
+		line, _ = strconv.ParseInt(string(sub[2]), 10, 64)
+		haveLine = true
+		if len(sub[3]) > 0 {
+			col, _ = strconv.ParseInt(string(sub[3]), 10, 64)
+			haveCol = true
+		}
+	}
+
+	absoluteURL, err := baseURL.Parse(string(path))
+	if err != nil {
+		return baseURL
+	}
+
+	if haveLine {
+		absoluteURL.Fragment = fmt.Sprintf("line=%d", line-1)
+		if haveCol {
+			absoluteURL.Fragment += fmt.Sprintf(";char=%d", col-1)
+		}
+	}
+
+	return absoluteURL
+}
+func (a *routeAction) Execute() {
+	log.Printf("recieved %q", string(a.msg.Data))
+	next, err := a.route(a.msg)
 	if err == nil {
-		err = rc.send(next)
+		err = a.send(next)
 	}
 	if err != nil {
 		log.Print(err)
-		errReply := nats.NewMsg(rc.msg.Reply)
+		errReply := nats.NewMsg(a.msg.Reply)
 		errReply.Data = []byte(fmt.Sprintf("ERROR: %v", err.Error()))
-		if err := rc.send(errReply); err != nil {
+		if err := a.send(errReply); err != nil {
 			log.Printf("error responding: %v", err)
 		}
 	}
