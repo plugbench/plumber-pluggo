@@ -7,13 +7,13 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-type routeCommand struct {
+type routeAction struct {
 	msg  *nats.Msg
 	send func(msg *nats.Msg) error
 }
 
-func newRouteCommand(msg *nats.Msg, send func(msg *nats.Msg) error) *routeCommand {
-	return &routeCommand{msg: msg, send: send}
+func newRouteCommand(msg *nats.Msg, send func(msg *nats.Msg) error) *routeAction {
+	return &routeAction{msg: msg, send: send}
 }
 
 func route(msg *nats.Msg) (*nats.Msg, error) {
@@ -25,7 +25,7 @@ func route(msg *nats.Msg) (*nats.Msg, error) {
 	return out, nil
 }
 
-func (rc *routeCommand) Execute() {
+func (rc *routeAction) Execute() {
 	log.Printf("recieved %q", string(rc.msg.Data))
 	next, err := route(rc.msg)
 	if err == nil {
