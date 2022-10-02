@@ -8,9 +8,9 @@ import (
 )
 
 type routeTest struct {
-	t                 *testing.T
-	msg               *nats.Msg
-	after_send_errors []error
+	t          *testing.T
+	msg        *nats.Msg
+	sendErrors []error
 }
 
 func routes(t *testing.T, msg *nats.Msg) *routeTest {
@@ -18,16 +18,16 @@ func routes(t *testing.T, msg *nats.Msg) *routeTest {
 }
 
 func (rt *routeTest) after_send_error(err error) *routeTest {
-	rt.after_send_errors = append(rt.after_send_errors, err)
+	rt.sendErrors = append(rt.sendErrors, err)
 	return rt
 }
 
 func (rt *routeTest) to(expect *nats.Msg) *routeTest {
 	var out *nats.Msg
 	rc := newRouteCommand(rt.msg, func(msg *nats.Msg) error {
-		if len(rt.after_send_errors) > 0 {
-			err := rt.after_send_errors[0]
-			rt.after_send_errors = rt.after_send_errors[1:]
+		if len(rt.sendErrors) > 0 {
+			err := rt.sendErrors[0]
+			rt.sendErrors = rt.sendErrors[1:]
 			return err
 		}
 		if out != nil {
