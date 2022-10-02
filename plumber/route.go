@@ -62,7 +62,7 @@ func (a *routeAction) absoluteURL() (*url.URL, error) {
 
 	absoluteURL, err := baseURL.Parse(string(path))
 	if err != nil {
-        	return nil, err
+		return nil, err
 	}
 
 	if haveLine {

@@ -67,6 +67,10 @@ func Test_Unparsable_URLs_cause_descriptive_error_replies(t *testing.T) {
 	})
 }
 
+func Test_Send_errors_cause_descriptive_error_reples(t *testing.T) {
+	//FIXME:
+}
+
 func Test_URLs_are_routed_to_schema_specific_topics(t *testing.T) {
 	t.Parallel()
 	routes(t, &nats.Msg{
