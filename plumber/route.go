@@ -24,7 +24,10 @@ func newRouteCommand(msg *nats.Msg, send func(msg *nats.Msg) error) *routeAction
 }
 
 func (a *routeAction) route(msg *nats.Msg) (*nats.Msg, error) {
-	u := a.absoluteURL()
+	u, err := a.absoluteURL()
+	if err != nil {
+		return nil, err
+	}
 	out := nats.NewMsg(fmt.Sprintf("cmd.show.url.%s", u.Scheme))
 	out.Data = []byte(u.String())
 	out.Header = msg.Header
@@ -32,14 +35,14 @@ func (a *routeAction) route(msg *nats.Msg) (*nats.Msg, error) {
 	return out, nil
 }
 
-func (a *routeAction) absoluteURL() *url.URL {
+func (a *routeAction) absoluteURL() (*url.URL, error) {
 	base := a.msg.Header.Get("Base")
 	if base == "" {
 		base = "file://"
 	}
 	baseURL, err := url.Parse(base)
 	if err != nil {
-		return baseURL
+		return nil, err
 	}
 
 	var line int64
@@ -59,7 +62,7 @@ func (a *routeAction) absoluteURL() *url.URL {
 
 	absoluteURL, err := baseURL.Parse(string(path))
 	if err != nil {
-		return baseURL
+        	return nil, err
 	}
 
 	if haveLine {
@@ -69,8 +72,9 @@ func (a *routeAction) absoluteURL() *url.URL {
 		}
 	}
 
-	return absoluteURL
+	return absoluteURL, nil
 }
+
 func (a *routeAction) Execute() {
 	log.Printf("recieved %q", string(a.msg.Data))
 	next, err := a.route(a.msg)

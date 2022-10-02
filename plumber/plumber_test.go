@@ -55,6 +55,18 @@ func (rt *routeTest) to(expect *nats.Msg) *routeTest {
 	return rt
 }
 
+func Test_Unparsable_URLs_cause_descriptive_error_replies(t *testing.T) {
+	t.Parallel()
+	routes(t, &nats.Msg{
+		Subject: "cmd.show.data.plumb",
+		Reply:   "_INBOX.42",
+		Data:    []byte("/#%q7"),
+	}).to(&nats.Msg{
+		Subject: "_INBOX.42",
+		Data:    []byte("ERROR: parse \"/#%q7\": invalid URL escape \"%q7\""),
+	})
+}
+
 func Test_URLs_are_routed_to_schema_specific_topics(t *testing.T) {
 	t.Parallel()
 	routes(t, &nats.Msg{
