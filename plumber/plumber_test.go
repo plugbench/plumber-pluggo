@@ -12,16 +12,15 @@ type routeTest struct {
 }
 
 func routes(t *testing.T, msg *nats.Msg) *routeTest {
-	var out *nats.Msg
+	rt := &routeTest{t: t}
 	rc := newRouteCommand(msg, func(msg *nats.Msg) error {
-		if out != nil {
+		if rt.out != nil {
 			t.Error("more than one reply sent")
 		}
-		out = msg
+		rt.out = msg
 		return nil
 	})
 	rc.Execute()
-	rt := &routeTest{t: t, out: out}
 	return rt
 }
 
