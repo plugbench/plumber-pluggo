@@ -1,39 +1,52 @@
 package plumber
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/nats-io/nats.go"
 )
 
 type routeTest struct {
-	t   *testing.T
-	out *nats.Msg
+	t                 *testing.T
+	msg               *nats.Msg
+	after_send_errors []error
 }
 
 func routes(t *testing.T, msg *nats.Msg) *routeTest {
-	rt := &routeTest{t: t}
-	rc := newRouteCommand(msg, func(msg *nats.Msg) error {
-		if rt.out != nil {
-			t.Error("more than one reply sent")
-		}
-		rt.out = msg
-		return nil
-	})
-	rc.Execute()
+	return &routeTest{t: t, msg: msg}
+}
+
+func (rt *routeTest) after_send_error(err error) *routeTest {
+	rt.after_send_errors = append(rt.after_send_errors, err)
 	return rt
 }
 
 func (rt *routeTest) to(expect *nats.Msg) *routeTest {
-	if expect.Subject != "" && rt.out.Subject != expect.Subject {
-		rt.t.Errorf("expected subject %q, but got %q", expect.Subject, rt.out.Subject)
+	var out *nats.Msg
+	rc := newRouteCommand(rt.msg, func(msg *nats.Msg) error {
+		if len(rt.after_send_errors) > 0 {
+			err := rt.after_send_errors[0]
+			rt.after_send_errors = rt.after_send_errors[1:]
+			return err
+		}
+		if out != nil {
+			rt.t.Error("more than one reply sent")
+		}
+		out = msg
+		return nil
+	})
+	rc.Execute()
+
+	if expect.Subject != "" && out.Subject != expect.Subject {
+		rt.t.Errorf("expected subject %q, but got %q", expect.Subject, out.Subject)
 	}
-	if expect.Data != nil && string(rt.out.Data) != string(expect.Data) {
-		rt.t.Errorf("expected data %q, but got %q", string(expect.Data), string(rt.out.Data))
+	if expect.Data != nil && string(out.Data) != string(expect.Data) {
+		rt.t.Errorf("expected data %q, but got %q", string(expect.Data), string(out.Data))
 	}
 	if expect.Header != nil {
 		for k, vs := range expect.Header {
-			actualVs, ok := rt.out.Header[k]
+			actualVs, ok := out.Header[k]
 			if !ok {
 				rt.t.Errorf("missing expected header %q", k)
 				continue
@@ -68,7 +81,17 @@ func Test_Unparsable_URLs_cause_descriptive_error_replies(t *testing.T) {
 }
 
 func Test_Send_errors_cause_descriptive_error_reples(t *testing.T) {
-	//FIXME:
+	t.Parallel()
+	routes(t, &nats.Msg{
+		Subject: "cmd.show.data.plumb",
+		Reply:   "_INBOX.42",
+		Data:    []byte("/tmp/foo.txt"),
+	}).
+		after_send_error(errors.New("FAIL IT")).
+		to(&nats.Msg{
+			Subject: "_INBOX.42",
+			Data:    []byte("ERROR: FAIL IT"),
+		})
 }
 
 func Test_URLs_are_routed_to_schema_specific_topics(t *testing.T) {
