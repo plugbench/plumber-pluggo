@@ -9,27 +9,23 @@ import (
 type routeTest struct {
 	t   *testing.T
 	out *nats.Msg
-	err error
 }
 
 func routes(t *testing.T, msg *nats.Msg) *routeTest {
-	p, err := New()
-	if err != nil {
-		t.Fatal(err)
-	}
-	out, err := p.Route(msg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	rt := &routeTest{t: t, out: out, err: err}
+	var out *nats.Msg
+	rc := newRouteCommand(msg, func(msg *nats.Msg) error {
+		if out != nil {
+			t.Error("more than one reply sent")
+		}
+		out = msg
+		return nil
+	})
+	rc.Execute()
+	rt := &routeTest{t: t, out: out}
 	return rt
 }
 
 func (rt *routeTest) to(expect *nats.Msg) *routeTest {
-	if rt.err != nil {
-		rt.t.Errorf("expected routing to succeed, but failed with %v", rt.err)
-		return rt
-	}
 	if expect.Subject != "" && rt.out.Subject != expect.Subject {
 		rt.t.Errorf("expected subject %q, but got %q", expect.Subject, rt.out.Subject)
 	}

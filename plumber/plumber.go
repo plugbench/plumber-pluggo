@@ -3,7 +3,6 @@ package plumber
 import (
 	"errors"
 	"fmt"
-	"log"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -24,15 +23,6 @@ func New() (*Plumber, error) {
 	return &Plumber{}, nil
 }
 
-func (p *Plumber) Route(msg *nats.Msg) (*nats.Msg, error) {
-	u := router{msg}.absoluteURL()
-	out := nats.NewMsg(fmt.Sprintf("cmd.show.url.%s", u.Scheme))
-	out.Data = []byte(u.String())
-	out.Header = msg.Header
-	out.Reply = msg.Reply
-	return out, nil
-}
-
 func (p *Plumber) Run() error {
 	nc, err := nats.Connect(nats.DefaultURL)
 	if err != nil {
@@ -49,19 +39,8 @@ func (p *Plumber) Run() error {
 
 	for {
 		msg := <-ch
-		log.Printf("recieved %q", string(msg.Data))
-
-		next, err := p.Route(msg)
-		if err == nil {
-			err = nc.PublishMsg(next)
-		}
-		if err != nil {
-			log.Print(err)
-			if err := msg.Respond([]byte(fmt.Sprintf("ERROR: %v", err.Error()))); err != nil {
-				log.Printf("error responding: %v", err)
-			}
-			continue
-		}
+		cmd := newRouteCommand(msg, nc.PublishMsg)
+		cmd.Execute()
 	}
 }
 
