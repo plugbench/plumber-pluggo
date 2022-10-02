@@ -16,7 +16,7 @@ func newRouteCommand(msg *nats.Msg, send func(msg *nats.Msg) error) *routeComman
 	return &routeCommand{msg: msg, send: send}
 }
 
-func Route(msg *nats.Msg) (*nats.Msg, error) {
+func route(msg *nats.Msg) (*nats.Msg, error) {
 	u := router{msg}.absoluteURL()
 	out := nats.NewMsg(fmt.Sprintf("cmd.show.url.%s", u.Scheme))
 	out.Data = []byte(u.String())
@@ -27,7 +27,7 @@ func Route(msg *nats.Msg) (*nats.Msg, error) {
 
 func (rc *routeCommand) Execute() {
 	log.Printf("recieved %q", string(rc.msg.Data))
-	next, err := Route(rc.msg)
+	next, err := route(rc.msg)
 	if err == nil {
 		err = rc.send(next)
 	}
