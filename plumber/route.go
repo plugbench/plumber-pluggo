@@ -68,7 +68,7 @@ func (a *routeAction) absoluteURL() (*url.URL, error) {
 	if haveLine {
 		absoluteURL.Fragment = fmt.Sprintf("line=%d", line-1)
 		if haveCol {
-			absoluteURL.Fragment += fmt.Sprintf(";char=%d", col-1)
+			absoluteURL.Fragment += fmt.Sprintf(".%d", col-1)
 		}
 	}
 
