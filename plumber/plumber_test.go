@@ -213,5 +213,13 @@ func Test_Plumber_converts_line_numbers_to_RFC_5147_fragment_ids(t *testing.T) {
 			Data: []byte("file:///tmp/foo.txt#line=78.11"),
 		})
 	})
+	t.Run("trailing garbage after line:column is ignored", func(t *testing.T) {
+		routes(t, &nats.Msg{
+			Subject: "cmd.show.data.plumb",
+			Data:    []byte("/tmp/foo.txt:11:42:wh4t"),
+		}).to(&nats.Msg{
+			Data: []byte("file:///tmp/foo.txt#line=10.41"),
+		})
+	})
 	// "line:column-column is converted"
 }
