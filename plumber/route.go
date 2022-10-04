@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	filePositions = regexp.MustCompile(`^(.*?):(\d+)(?::(\d+))?:?$`)
+	filePositions = regexp.MustCompile(`^(.*?):(\d+)(?::(\d+))?(?::[^:]*)?$`)
 )
 
 type routeAction struct {
