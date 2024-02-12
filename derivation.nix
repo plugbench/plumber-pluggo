@@ -1,8 +1,8 @@
-{ buildGo119Module
+{ buildGo121Module
 , fetchFromGitHub
 }:
 
-buildGo119Module {
+buildGo121Module {
   pname = "plumber-pluggo";
   version = "0.1.0";
   src = ./.;

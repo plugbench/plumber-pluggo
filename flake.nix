@@ -21,7 +21,7 @@
         };
         devShells.default = pkgs.mkShell {
           nativeBuildInputs = with pkgs; [
-            go_1_19
+            go_1_21
           ];
         };
     })) // {
