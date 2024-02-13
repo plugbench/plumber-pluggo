@@ -4,3 +4,5 @@ Changes
 Unreleased
 ----------
 
+* Honor $NATS_TOKEN
+

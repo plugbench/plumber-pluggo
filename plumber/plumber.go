@@ -2,17 +2,19 @@ package plumber
 
 import (
 	"github.com/nats-io/nats.go"
+	"github.com/plugbench/nats_cli"
 )
 
 type Plumber struct {
+        natsCfg nats_cli.Config
 }
 
-func New() (*Plumber, error) {
-	return &Plumber{}, nil
+func New(natsCfg nats_cli.Config) (*Plumber, error) {
+	return &Plumber{natsCfg: natsCfg}, nil
 }
 
 func (p *Plumber) Run() error {
-	nc, err := nats.Connect(nats.DefaultURL)
+	nc, err := p.natsCfg.Connect()
 	if err != nil {
 		return err
 	}
@@ -31,4 +33,3 @@ func (p *Plumber) Run() error {
 		cmd.Execute()
 	}
 }
-

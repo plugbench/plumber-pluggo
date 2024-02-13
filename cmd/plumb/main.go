@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/nats-io/nats.go"
+	"github.com/plugbench/nats_cli"
 
 	"github.com/plugbench/plumber-pluggo/plumb"
 )
@@ -90,7 +91,12 @@ func main() {
 		msg.Data = []byte(strings.Join(flag.Args(), " "))
 	}
 
-	nc, err := nats.Connect(nats.DefaultURL)
+	natsCfg, err := nats_cli.LoadConfigFromEnvironment()
+	if err != nil {
+		log.Fatalf("loading NATS config: %v", err)
+	}
+
+	nc, err := natsCfg.Connect()
 	if err != nil {
 		log.Fatalf("connecting to NATS: %v", err)
 	}
