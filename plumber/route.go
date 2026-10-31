@@ -75,11 +75,23 @@ func (a *routeAction) absoluteURL() (*url.URL, error) {
 	return absoluteURL, nil
 }
 
+// visit tells the frecency store, without waiting for it, what was plumbed.
+func (a *routeAction) visit(url []byte) {
+	msg := nats.NewMsg("cmd.add.frecent")
+	msg.Data = url
+	if err := a.send(msg); err != nil {
+		log.Printf("error visiting: %v", err)
+	}
+}
+
 func (a *routeAction) Execute() {
 	log.Printf("recieved %q", string(a.msg.Data))
 	next, err := a.route(a.msg)
 	if err == nil {
 		err = a.send(next)
+	}
+	if err == nil {
+		a.visit(next.Data)
 	}
 	if err != nil {
 		log.Print(err)

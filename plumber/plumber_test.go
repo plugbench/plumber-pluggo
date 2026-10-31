@@ -11,6 +11,7 @@ type routeTest struct {
 	t          *testing.T
 	msg        *nats.Msg
 	sendErrors []error
+	visits     []string
 }
 
 func routes(t *testing.T, msg *nats.Msg) *routeTest {
@@ -29,6 +30,10 @@ func (rt *routeTest) to(expect *nats.Msg) *routeTest {
 			err := rt.sendErrors[0]
 			rt.sendErrors = rt.sendErrors[1:]
 			return err
+		}
+		if msg.Subject == "cmd.add.frecent" {
+			rt.visits = append(rt.visits, string(msg.Data))
+			return nil
 		}
 		if out != nil {
 			rt.t.Error("more than one reply sent")
@@ -66,6 +71,46 @@ func (rt *routeTest) to(expect *nats.Msg) *routeTest {
 		}
 	}
 	return rt
+}
+
+func (rt *routeTest) visiting(expect ...string) *routeTest {
+	if len(rt.visits) != len(expect) {
+		rt.t.Errorf("expected visits %q, but got %q", expect, rt.visits)
+		return rt
+	}
+	for i := range expect {
+		if rt.visits[i] != expect[i] {
+			rt.t.Errorf("expected visits %q, but got %q", expect, rt.visits)
+		}
+	}
+	return rt
+}
+
+func Test_What_is_plumbed_is_visited(t *testing.T) {
+	t.Parallel()
+	routes(t, &nats.Msg{
+		Subject: "cmd.show.data.plumb",
+		Data:    []byte("/tmp/foo.txt:79"),
+		Header: map[string][]string{
+			"Base": {"file://my-workstation/"},
+		},
+	}).to(&nats.Msg{
+		Subject: "cmd.show.url.file",
+	}).visiting("file://my-workstation/tmp/foo.txt#line=78")
+}
+
+func Test_Nothing_is_visited_when_it_cannot_be_routed(t *testing.T) {
+	t.Parallel()
+	routes(t, &nats.Msg{
+		Subject: "cmd.show.data.plumb",
+		Reply:   "_INBOX.42",
+		Data:    []byte("/tmp/foo.txt"),
+	}).
+		after_send_error(errors.New("FAIL IT")).
+		to(&nats.Msg{
+			Subject: "_INBOX.42",
+		}).
+		visiting()
 }
 
 func Test_Unparsable_URLs_cause_descriptive_error_replies(t *testing.T) {

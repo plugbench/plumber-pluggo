@@ -37,3 +37,7 @@ This canonicalized URL is forwarded to some topic:
 
 * URLs with the `http` or `https` schema are routed to the `browser.open` topic.
 * URLs with the `file` are routed to the `editor.open` topic.
+
+After routing, it sends the URL to `cmd.add.frecent`, so that
+https://github.com/plugbench/fre-pluggo[fre-pluggo] remembers it was visited.
+It does not wait for an answer, so it works the same without fre-pluggo.
