@@ -7,4 +7,5 @@ Unreleased
 * Honor $NATS_TOKEN
 * Tells the frecency store (`cmd.add.frecent`) what it routes, without
   waiting for an answer.
+* Expands a leading `~/` to the home directory.
 

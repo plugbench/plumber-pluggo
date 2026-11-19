@@ -2,6 +2,7 @@ package plumber
 
 import (
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/nats-io/nats.go"
@@ -203,6 +204,21 @@ func Test_Plumber_resolves_relative_URLs(t *testing.T) {
 			},
 		}).to(&nats.Msg{
 			Data: []byte("file://file-server/bar/quux/foo.txt"),
+		})
+	})
+	t.Run("path starting with ~/ is relative to the home directory", func(t *testing.T) {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			t.Fatal(err)
+		}
+		routes(t, &nats.Msg{
+			Subject: "cmd.show.data.plumb",
+			Data:    []byte("~/quux/foo.txt:79"),
+			Header: map[string][]string{
+				"Base": {"file://file-server/bar/"},
+			},
+		}).to(&nats.Msg{
+			Data: []byte("file://file-server" + home + "/quux/foo.txt#line=78"),
 		})
 	})
 	t.Run("absolute, non-URL filepath with no Base is made into a file URL", func(t *testing.T) {

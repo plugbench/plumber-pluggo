@@ -1,9 +1,11 @@
 package plumber
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 
@@ -58,6 +60,14 @@ func (a *routeAction) absoluteURL() (*url.URL, error) {
 			col, _ = strconv.ParseInt(string(sub[3]), 10, 64)
 			haveCol = true
 		}
+	}
+
+	if bytes.HasPrefix(path, []byte("~/")) {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, err
+		}
+		path = append([]byte(home), path[1:]...)
 	}
 
 	absoluteURL, err := baseURL.Parse(string(path))
